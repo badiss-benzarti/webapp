@@ -1,0 +1,47 @@
+services:
+  mysql-db:
+    image: mysql:8.0.36
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: productdb
+    ports:
+      - "13307:3306"
+    volumes:
+      - mysql-db-data:/var/lib/mysql
+
+  mongo-order:
+    image: mongo:7
+    container_name: mongo-order
+    restart: always
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-order-data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.5
+    container_name: keycloak
+    restart: always
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "9090:8080"
+
+volumes:
+  mysql-db-data:
+  mongo-order-data:
