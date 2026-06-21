@@ -5,15 +5,18 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-  "dev": "nodemon index.js"
+    "dev": "nodemon index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "amqplib": "^2.0.1",
+    "axios": "^1.18.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
+    "eureka-js-client": "^4.5.0",
     "express": "^5.2.1",
     "mongoose": "^9.7.1"
   },

@@ -1,0 +1,32 @@
+<div class="login-page">
+  <div class="login-card">
+    <h2>Login</h2>
+    <p>Use your Keycloak account to access the dashboard.</p>
+
+    <div class="demo-box">
+      <strong>Demo accounts</strong>
+      <span>USER: testuser / test123</span>
+      <span>ADMIN: adminuser / admin123</span>
+    </div>
+
+    <label>Username</label>
+    <input [(ngModel)]="username" placeholder="testuser or adminuser">
+
+    <label>Password</label>
+    <input [(ngModel)]="password" type="password" placeholder="Password">
+
+    <button (click)="login()" [disabled]="loading">
+      {{ loading ? 'Logging in...' : 'Login' }}
+    </button>
+
+    <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+    <a
+      class="keycloak-link"
+      href="http://localhost:9090/realms/distributed-app/protocol/openid-connect/auth?client_id=api-gateway&response_type=code&redirect_uri=http://localhost:4200/login&scope=openid"
+      target="_blank"
+    >
+      Open customized Keycloak login theme
+    </a>
+  </div>
+</div>

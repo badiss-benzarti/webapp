@@ -1,0 +1,76 @@
+<main class="page">
+  <section class="card">
+    <div class="title-row">
+      <div>
+        <h2>Orders</h2>
+        <p>Manage orders and demonstrate RabbitMQ async communication.</p>
+      </div>
+
+      <button (click)="loadOrders()">Reload Orders</button>
+    </div>
+
+    <div class="success" *ngIf="message">{{ message }}</div>
+    <div class="error" *ngIf="error">{{ error }}</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Product ID</th>
+          <th>Quantity</th>
+          <th>Status</th>
+          <th>Created At</th>
+          <th>Cancel</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let order of orders">
+          <td>{{ order._id }}</td>
+          <td>{{ order.productId }}</td>
+          <td>{{ order.quantity }}</td>
+          <td>
+            <span class="status" [class.cancelled]="order.status === 'CANCELLED'">
+              {{ order.status }}
+            </span>
+          </td>
+          <td>{{ order.createdAt }}</td>
+
+          <td>
+            <button
+              class="orange small"
+              *ngIf="order.status !== 'CANCELLED'"
+              (click)="cancelOrder(order._id)"
+            >
+              Cancel Order
+            </button>
+
+            <span *ngIf="order.status === 'CANCELLED'">
+              Already cancelled
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <h3>Create Order</h3>
+      <p>RabbitMQ scenario 1: order created → stock decreases.</p>
+
+      <input [(ngModel)]="newOrder.productId" type="number" placeholder="Product ID">
+      <input [(ngModel)]="newOrder.quantity" type="number" placeholder="Quantity">
+
+      <button class="green" (click)="createOrder()">Create Order</button>
+    </div>
+
+    <div class="card">
+      <h3>Cancel Order Manually</h3>
+      <p>RabbitMQ scenario 2: order cancelled → stock restored.</p>
+
+      <input [(ngModel)]="cancelOrderId" placeholder="Order ID">
+      <button class="orange" (click)="cancelOrder()">Cancel Order</button>
+    </div>
+  </section>
+</main>

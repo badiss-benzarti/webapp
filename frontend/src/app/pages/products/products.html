@@ -1,0 +1,79 @@
+<main class="page">
+  <section class="card">
+    <div class="title-row">
+      <div>
+        <h2>Products</h2>
+        <p>Manage products through the secured API Gateway.</p>
+      </div>
+
+      <button (click)="loadProducts()">Reload Products</button>
+    </div>
+
+    <div class="success" *ngIf="message">{{ message }}</div>
+    <div class="error" *ngIf="error">{{ error }}</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Order</th>
+          <th *ngIf="authService.isAdmin()">Admin</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let product of products">
+          <td>{{ product.id }}</td>
+          <td>{{ product.name }}</td>
+          <td>{{ product.price }}</td>
+          <td>{{ product.quantity }}</td>
+          <td>
+            <button class="small green" (click)="selectProductForOrder(product.id)">
+              Order this
+            </button>
+          </td>
+          <td *ngIf="authService.isAdmin()">
+            <button class="small red" (click)="deleteProduct(product.id)">
+              Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="grid">
+    <div class="card" *ngIf="authService.isAdmin()">
+      <h3>Create Product</h3>
+
+      <input [(ngModel)]="newProduct.name" placeholder="Product name">
+      <input [(ngModel)]="newProduct.price" type="number" placeholder="Price">
+      <input [(ngModel)]="newProduct.quantity" type="number" placeholder="Quantity">
+
+      <button class="green" (click)="createProduct()">Create Product</button>
+    </div>
+
+    <div class="card">
+      <h3>Place Order</h3>
+      <p>This demonstrates RabbitMQ: creating an order decreases product stock.</p>
+
+      <input [(ngModel)]="orderProductId" type="number" placeholder="Product ID">
+      <input [(ngModel)]="orderQuantity" type="number" placeholder="Quantity">
+
+      <button class="green" (click)="placeOrder()">Place Order</button>
+    </div>
+
+    <div class="card">
+      <h3>Feign Test</h3>
+      <p>Product Service calls Order Service to get orders count.</p>
+
+      <input [(ngModel)]="countProductId" type="number" placeholder="Product ID">
+      <button (click)="getOrdersCount()">Get Orders Count</button>
+
+      <pre *ngIf="ordersCountResult">{{ ordersCountResult | json }}</pre>
+    </div>
+  </section>
+</main>

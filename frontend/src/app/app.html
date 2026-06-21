@@ -1,0 +1,20 @@
+<header class="main-header">
+  <div>
+    <h1>Distributed Product & Order App</h1>
+    <p>Angular • Keycloak • API Gateway • Eureka • Feign • RabbitMQ</p>
+  </div>
+
+  <nav *ngIf="authService.isLoggedIn()">
+    <a routerLink="/products">Products</a>
+    <a routerLink="/orders">Orders</a>
+
+    <span class="user-info">
+      {{ authService.getUsername() }} |
+      Roles: {{ authService.getRoles().join(', ') }}
+    </span>
+
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </nav>
+</header>
+
+<router-outlet></router-outlet>
