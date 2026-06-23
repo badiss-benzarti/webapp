@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discovery-server
+  namespace: distributed-web-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: discovery-server
+  template:
+    metadata:
+      labels:
+        app: discovery-server
+    spec:
+      containers:
+        - name: discovery-server
+          image: distributed-web-app-discovery-server:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8761
+          env:
+            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+              value: health,info,prometheus
+            - name: MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS
+              value: always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: discovery-server
+  namespace: distributed-web-app
+spec:
+  type: NodePort
+  selector:
+    app: discovery-server
+  ports:
+    - name: http
+      port: 8761
+      targetPort: 8761
+      nodePort: 30061
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-server
+  namespace: distributed-web-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: config-server
+  template:
+    metadata:
+      labels:
+        app: config-server
+    spec:
+      containers:
+        - name: config-server
+          image: distributed-web-app-config-server:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8888
+          env:
+            - name: SERVER_PORT
+              value: "8888"
+            - name: SPRING_PROFILES_ACTIVE
+              value: native
+            - name: SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS
+              value: classpath:/configurations
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: http://discovery-server:8761/eureka/
+            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+              value: health,info,prometheus
+            - name: MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS
+              value: always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: config-server
+  namespace: distributed-web-app
+spec:
+  type: NodePort
+  selector:
+    app: config-server
+  ports:
+    - name: http
+      port: 8888
+      targetPort: 8888
+      nodePort: 30088

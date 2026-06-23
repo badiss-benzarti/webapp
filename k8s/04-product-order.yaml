@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  namespace: distributed-web-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      containers:
+        - name: product-service
+          image: distributed-web-app-product-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          env:
+            - name: CONFIG_SERVER_URL
+              value: http://config-server:8888
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: http://discovery-server:8761/eureka/
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql-db:3306/productdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: mysql-root-password
+            - name: SPRING_RABBITMQ_HOST
+              value: rabbitmq
+            - name: SPRING_RABBITMQ_PORT
+              value: "5672"
+            - name: SPRING_RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: rabbitmq-user
+            - name: SPRING_RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: rabbitmq-password
+            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+              value: health,info,prometheus
+            - name: MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS
+              value: always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  namespace: distributed-web-app
+spec:
+  selector:
+    app: product-service
+  ports:
+    - name: http
+      port: 8081
+      targetPort: 8081
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: distributed-web-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: distributed-web-app-order-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8082
+          env:
+            - name: PORT
+              value: "8082"
+            - name: MONGO_URI
+              value: mongodb://mongo-order:27017/orderdb
+            - name: EUREKA_HOST
+              value: discovery-server
+            - name: EUREKA_PORT
+              value: "8761"
+            - name: SERVICE_HOSTNAME
+              value: order-service
+            - name: RABBITMQ_URL
+              value: amqp://admin:admin@rabbitmq:5672
+            - name: PRODUCT_SERVICE_URL
+              value: http://product-service:8081
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: distributed-web-app
+spec:
+  selector:
+    app: order-service
+  ports:
+    - name: http
+      port: 8082
+      targetPort: 8082

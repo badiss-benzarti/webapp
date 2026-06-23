@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: distributed-web-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:24.0.5
+          args: ["start-dev"]
+          ports:
+            - containerPort: 8080
+          env:
+            - name: KEYCLOAK_ADMIN
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: keycloak-admin
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: keycloak-admin-password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: distributed-web-app
+spec:
+  selector:
+    app: keycloak
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: distributed-web-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: distributed-web-app-api-gateway:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8088
+          env:
+            - name: CONFIG_SERVER_URL
+              value: http://config-server:8888
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: http://discovery-server:8761/eureka/
+            - name: KEYCLOAK_JWK_SET_URI
+              value: http://keycloak:8080/realms/distributed-app/protocol/openid-connect/certs
+            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+              value: health,info,prometheus
+            - name: MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS
+              value: always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: distributed-web-app
+spec:
+  selector:
+    app: api-gateway
+  ports:
+    - name: http
+      port: 8088
+      targetPort: 8088
